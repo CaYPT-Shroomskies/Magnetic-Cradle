@@ -172,8 +172,8 @@ plt.figure(figsize=(12, 6))
 # Plot angles
 for i in range(num_mags):
     plt.plot(sol.t, np.degrees(angles[i]), label=f"Magnet {i + 1}")
-plt.ylabel("Angle (degrees)")
-plt.title("Magnetic Newton's Cradle Simulation")
+plt.ylabel("Angle (deg)")
+plt.xlabel("Time (s)")
 plt.legend()
 plt.grid(True)
 
@@ -258,6 +258,6 @@ ani = animation.FuncAnimation(
 )
 
 # Uncomment below to save as video (requires ffmpeg)
-# ani.save('magnetic_cradle.mp4', writer='ffmpeg', fps=30)
+ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
 
-plt.show()
+# plt.show()
