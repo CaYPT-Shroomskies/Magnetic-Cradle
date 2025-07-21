@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 5
+num_mags = 3
 magnets = np.linspace(-0.03, 0.03, num_mags)
 length = 0.05
 m = 0.03
@@ -27,10 +27,10 @@ m_rad = 0.006
 m_seg = 8
 mass = 0.00711
 
-drag = 0.0001  # Drag coefficient
+drag = 0.00002  # Drag coefficient
 
 # Initial state
-initial_angles = np.radians([0.0, 0, 0, 0, 20.0])
+initial_angles = np.radians([0.0, 0, 20.0])
 initial_angular_velocities = np.zeros(num_mags)
 state = np.concatenate([initial_angles, initial_angular_velocities])
 
@@ -229,8 +229,12 @@ def update(frame):
 
         lines[i].set_data([x_pivot, x_tip], [0, y_tip])
 
-        rect_x = x_tip - rect_width / 2
-        rect_y = y_tip - rect_height / 2
+        rect_x = (
+            x_tip - np.cos(theta) * rect_width / 2 + np.sin(theta) * rect_height / 2
+        )
+        rect_y = (
+            y_tip - np.cos(theta) * rect_height / 2 + np.sin(theta) * rect_width / 2
+        )
 
         rects[i].remove()
         rect = plt.Rectangle(
@@ -258,6 +262,6 @@ ani = animation.FuncAnimation(
 )
 
 # Uncomment below to save as video (requires ffmpeg)
-ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
+# ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
 
-# plt.show()
+plt.show()
