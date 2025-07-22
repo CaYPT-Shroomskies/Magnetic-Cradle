@@ -1,0 +1,3 @@
+[submodule "extern/bfield"]
+	path = extern/bfield
+	url = https://github.com/luyu-wu/Cylindrical-Magnet-Field.git

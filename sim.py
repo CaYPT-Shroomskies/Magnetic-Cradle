@@ -5,8 +5,8 @@ import time  # noqa
 
 # Submodules
 import graphing  # noqa
-from bfield import solution as bioSol  # noqa
-from lorentz import solution as lorSol
+from extern.bfield.bfield import solution as bioSol  # noqa
+from extern.bfield.lorentz import solution as lorSol  # noqa
 
 # Imports
 import numpy as np
