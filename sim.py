@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 5
+num_mags = 4
 magnets = np.linspace(-0.05, 0.05, num_mags)
 length = 0.1
 m = 0.1
@@ -27,10 +27,10 @@ m_rad = 0.006
 m_seg = 12
 mass = 0.02
 
-drag = 0.0005  # Drag coefficient
+drag = 0.00005  # Drag coefficient
 
 # Initial state
-initial_angles = np.radians([-17, -7.5, 0, 7.5, 35])
+initial_angles = np.radians([-8, -3, 3, 35])
 initial_angular_velocities = np.zeros(num_mags)
 state = np.concatenate([initial_angles, initial_angular_velocities])
 
