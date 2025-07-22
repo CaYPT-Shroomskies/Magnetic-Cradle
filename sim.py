@@ -19,23 +19,23 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 2
-magnets = np.linspace(-0.00, 0.00, num_mags)
-length = 0.05
-m = 0.03
+num_mags = 5
+magnets = np.linspace(-0.05, 0.05, num_mags)
+length = 0.1
+m = 0.1
 m_rad = 0.006
-m_seg = 8
-mass = 0.00711
+m_seg = 12
+mass = 0.02
 
-drag = 0.000002  # Drag coefficient
+drag = 0.0005  # Drag coefficient
 
 # Initial state
-initial_angles = np.radians([0, 45.0])
+initial_angles = np.radians([-17, -7.5, 0, 7.5, 35])
 initial_angular_velocities = np.zeros(num_mags)
 state = np.concatenate([initial_angles, initial_angular_velocities])
 
-t_span = (0, 5)
-t_eval = np.linspace(t_span[0], t_span[1], 1000)
+t_span = (0, 10)
+t_eval = np.linspace(t_span[0], t_span[1], t_span[1] * 120)
 
 
 # @njit
@@ -45,9 +45,11 @@ def step(t, state):
 
     ang_accel = np.zeros(num_mags)
 
+    # iterate through interaction pairs
     for ind, theta in enumerate(angles[1:]):
         ind += 1
         force = np.zeros(3)
+        force_a = np.zeros(3)
         pos = np.array(
             [magnets[ind] + np.sin(theta) * length, 0, length * np.cos(theta)]
         )
@@ -62,9 +64,9 @@ def step(t, state):
 
         local_disp = np.array(
             [
-                [np.sin(theta), 0, np.cos(theta)],
+                [np.sin(theta - theta_a), 0, np.cos(theta - theta_a)],
                 [0, 1, 0],
-                [np.cos(theta), 0, -np.sin(theta)],
+                [np.cos(theta - theta_a), 0, -np.sin(theta - theta_a)],
             ]
         ).T @ (pos - pos_a)
         force -= lorSol(
@@ -82,14 +84,23 @@ def step(t, state):
                 np.sin(theta) * force[2] + np.cos(theta) * force[0],
             ]
         )
-        force[2] += gravity * mass
+        force_a = -force
+
         rel_pos = np.array([np.sin(theta) * length, 0, np.cos(theta) * length])
+        rel_pos_a = np.array([np.sin(theta_a) * length, 0, np.cos(theta_a) * length])
+
         torque = np.cross(rel_pos, force)
+        torque_a = np.cross(rel_pos_a, force_a)
 
-        # Drag
-        torque[1] -= drag * angular_velocities[ind]
+        ang_accel[ind - 1] += torque_a[1] / (mass * length**2)
+        ang_accel[ind] += torque[1] / (mass * length**2)
 
-        ang_accel[ind] = torque[1] / (mass * length**2)
+    for i in range(num_mags):
+        force = np.array([0, 0, gravity * mass])
+        rel_pos = np.array([np.sin(angles[i]) * length, 0, np.cos(angles[i]) * length])
+        torque = np.cross(rel_pos, force)
+        torque[1] -= drag * angular_velocities[i]
+        ang_accel[i] += torque[1] / (mass * length**2)
 
     output = np.empty(2 * num_mags)
     output[:num_mags] = angular_velocities
@@ -150,8 +161,8 @@ plt.tight_layout()
 plt.show()
 
 fig_anim, ax_anim = plt.subplots(figsize=(8, 6))
-ax_anim.set_xlim(-0.06, 0.06)
-ax_anim.set_ylim(-0.08, 0.01)
+ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
+ax_anim.set_ylim(-length * 1.1, 0.01)
 ax_anim.set_aspect("equal")
 ax_anim.grid(True)
 
@@ -226,7 +237,7 @@ ani = animation.FuncAnimation(
     frames=len(sol.t),
     init_func=init,
     blit=False,
-    interval=t_span[1] / len(t_eval),
+    interval=1000 / 60,
 )
 
 # Uncomment below to save as video (requires ffmpeg)
