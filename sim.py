@@ -19,18 +19,18 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 3
-magnets = np.linspace(-0.03, 0.03, num_mags)
+num_mags = 2
+magnets = np.linspace(-0.00, 0.00, num_mags)
 length = 0.05
 m = 0.03
 m_rad = 0.006
 m_seg = 8
 mass = 0.00711
 
-drag = 0.00002  # Drag coefficient
+drag = 0.000002  # Drag coefficient
 
 # Initial state
-initial_angles = np.radians([0.0, 0, 20.0])
+initial_angles = np.radians([0, 45.0])
 initial_angular_velocities = np.zeros(num_mags)
 state = np.concatenate([initial_angles, initial_angular_velocities])
 
@@ -45,68 +45,36 @@ def step(t, state):
 
     ang_accel = np.zeros(num_mags)
 
-    for ind, theta in enumerate(angles):
+    for ind, theta in enumerate(angles[1:]):
+        ind += 1
         force = np.zeros(3)
         pos = np.array(
             [magnets[ind] + np.sin(theta) * length, 0, length * np.cos(theta)]
         )
-        if ind > 0:
-            theta_a = angles[ind - 1]
-            pos_a = np.array(
-                [
-                    magnets[ind - 1] + np.sin(theta_a) * length,
-                    0,
-                    length * np.cos(theta_a),
-                ]
-            )
+        theta_a = angles[ind - 1]
+        pos_a = np.array(
+            [
+                magnets[ind - 1] + np.sin(theta_a) * length,
+                0,
+                length * np.cos(theta_a),
+            ]
+        )
 
-            local_disp = np.array(
-                [
-                    [np.sin(theta), 0, np.cos(theta)],
-                    [0, 1, 0],
-                    [np.cos(theta), 0, -np.sin(theta)],
-                ]
-            ).T @ (pos - pos_a)
-            force -= lorSol(
-                position=local_disp,
-                orientation=np.array(
-                    [np.sin(theta - theta_a), 0, np.cos(theta - theta_a)]
-                ),
-                mradius=m_rad,
-                mheight=0,
-                moment=m,
-                accuracy=np.array([1, m_seg]),
-            )
-
-        if ind < num_mags - 1:
-            theta_a = angles[ind + 1]
-            pos_a = np.array(
-                [
-                    magnets[ind + 1] + np.sin(theta_a) * length,
-                    0,
-                    length * np.cos(theta_a),
-                ]
-            )
-
-            local_disp = np.array(
-                [
-                    [np.sin(theta), 0, np.cos(theta)],
-                    [0, 1, 0],
-                    [np.cos(theta), 0, -np.sin(theta)],
-                ]
-            ).T @ (pos - pos_a)
-
-            force -= lorSol(
-                position=local_disp,
-                orientation=np.array(
-                    [np.sin(theta - theta_a), 0, np.cos(theta - theta_a)]
-                ),
-                mradius=m_rad,
-                mheight=0,
-                moment=m,
-                accuracy=np.array([1, m_seg]),
-            )
-        # print(force)
+        local_disp = np.array(
+            [
+                [np.sin(theta), 0, np.cos(theta)],
+                [0, 1, 0],
+                [np.cos(theta), 0, -np.sin(theta)],
+            ]
+        ).T @ (pos - pos_a)
+        force -= lorSol(
+            position=local_disp,
+            orientation=np.array([np.sin(theta - theta_a), 0, np.cos(theta - theta_a)]),
+            mradius=m_rad,
+            mheight=0,
+            moment=m,
+            accuracy=np.array([1, m_seg]),
+        )
         force = np.array(
             [
                 np.cos(theta) * force[2] + np.sin(theta) * force[0],
@@ -233,7 +201,7 @@ def update(frame):
             x_tip - np.cos(theta) * rect_width / 2 + np.sin(theta) * rect_height / 2
         )
         rect_y = (
-            y_tip - np.cos(theta) * rect_height / 2 + np.sin(theta) * rect_width / 2
+            y_tip - np.cos(theta) * rect_height / 2 - np.sin(theta) * rect_width / 2
         )
 
         rects[i].remove()
