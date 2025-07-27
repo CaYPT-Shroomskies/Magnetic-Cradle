@@ -1,3 +1,6 @@
+
+print("\n\033[1mMagnetic Cradle Numerical Solution\033[0m")
+
 # Fundamental
 import argparse  # noqa
 import os  # noqa
@@ -11,16 +14,16 @@ from extern.bfield.lorentz import solution as lorSol  # noqa
 # Imports
 import numpy as np
 from scipy.integrate import solve_ivp
-import matplotlib.animation as animation
 from numba import njit  # noqa
+from matplotlib import animation  # noqa
 import matplotlib.pyplot as plt
 
 # Constants
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 4
-magnets = np.linspace(-0.05, 0.05, num_mags)
+num_mags = 2
+magnets = np.linspace(-0.03, 0.03, num_mags)
 length = 0.1
 m = 0.1
 m_rad = 0.006
@@ -30,30 +33,30 @@ mass = 0.02
 drag = 0.00005  # Drag coefficient
 
 # Initial state
-initial_angles = np.radians([-8, -3, 3, 35])
 initial_angular_velocities = np.zeros(num_mags)
-state = np.concatenate([initial_angles, initial_angular_velocities])
+timestep = 1 / 60
 
-t_span = (0, 10)
-t_eval = np.linspace(t_span[0], t_span[1], t_span[1] * 120)
+graphs = [graphing.Theta, graphing.FFT]
+animate = True
 
 
-# @njit
-def step(t, state):
+@njit(cache=True)
+def step(t: float, state: np.ndarray) -> np.ndarray:
     angles = state[:num_mags]
     angular_velocities = state[num_mags:]
 
     ang_accel = np.zeros(num_mags)
 
     # iterate through interaction pairs
-    for ind, theta in enumerate(angles[1:]):
+
+    for ind in range(num_mags - 1):
         ind += 1
-        force = np.zeros(3)
-        force_a = np.zeros(3)
+        theta = angles[ind]
+        theta_a = angles[ind - 1]
+
         pos = np.array(
             [magnets[ind] + np.sin(theta) * length, 0, length * np.cos(theta)]
         )
-        theta_a = angles[ind - 1]
         pos_a = np.array(
             [
                 magnets[ind - 1] + np.sin(theta_a) * length,
@@ -64,12 +67,13 @@ def step(t, state):
 
         local_disp = np.array(
             [
-                [np.sin(theta - theta_a), 0, np.cos(theta - theta_a)],
-                [0, 1, 0],
-                [np.cos(theta - theta_a), 0, -np.sin(theta - theta_a)],
-            ]
+                [np.sin(theta_a), 0, np.cos(theta_a)],
+                [0.0, 1.0, 0.0],
+                [np.cos(theta_a), 0, -np.sin(theta_a)],
+            ],
         ).T @ (pos - pos_a)
-        force -= lorSol(
+
+        force = -lorSol(
             position=local_disp,
             orientation=np.array([np.sin(theta - theta_a), 0, np.cos(theta - theta_a)]),
             mradius=m_rad,
@@ -84,16 +88,13 @@ def step(t, state):
                 np.sin(theta) * force[2] + np.cos(theta) * force[0],
             ]
         )
-        force_a = -force
 
         rel_pos = np.array([np.sin(theta) * length, 0, np.cos(theta) * length])
-        rel_pos_a = np.array([np.sin(theta_a) * length, 0, np.cos(theta_a) * length])
 
-        torque = np.cross(rel_pos, force)
-        torque_a = np.cross(rel_pos_a, force_a)
+        acc = np.cross(rel_pos, force)[1] / (mass * length**2)
 
-        ang_accel[ind - 1] += torque_a[1] / (mass * length**2)
-        ang_accel[ind] += torque[1] / (mass * length**2)
+        ang_accel[ind - 1] -= acc  # Conservation of angular momentum
+        ang_accel[ind] += acc
 
     for i in range(num_mags):
         force = np.array([0, 0, gravity * mass])
@@ -102,7 +103,7 @@ def step(t, state):
         torque[1] -= drag * angular_velocities[i]
         ang_accel[i] += torque[1] / (mass * length**2)
 
-    output = np.empty(2 * num_mags)
+    output = np.zeros(2 * num_mags, dtype=np.float64)
     output[:num_mags] = angular_velocities
     output[num_mags:] = ang_accel
     return output
@@ -137,110 +138,84 @@ def compile():
     print("Precompiled Step Function:", int(1e3 * (time.perf_counter() - t0)), "ms\n")
 
 
-print("\n\033[1mMagnetic Cradle Numerical Solution\033[0m")
 compile()
 
 
 # Solve
-sol = solve_ivp(step, t_span, state, t_eval=t_eval, method="RK45")
-angles = sol.y[:num_mags]
-angular_velocities = sol.y[num_mags:]
+def solve(conditions,t_eval):
+    t0 = time.perf_counter()
+    print("Solving...")
+    sol = solve_ivp(step, [0,t_eval[-1]], conditions, t_eval=t_eval, method="RK45")
+    print("Finished Solving:", int(1e3 * (time.perf_counter() - t0)), "ms\n")
 
-plt.figure(figsize=(12, 6))
+    angles = sol.y[:num_mags]
+    angular_velocities = sol.y[num_mags:]
+    if __name__ == "__main__":
+        fig, axis = plt.subplots(len(graphs))
+        if len(graphs) == 1:
+            axis = [axis]
+        axis[0].set_title("Cradle [MODEL]")
 
-# Plot angles
-for i in range(num_mags):
-    plt.plot(sol.t, np.degrees(angles[i]), label=f"Magnet {i + 1}")
-plt.ylabel("Angle (deg)")
-plt.xlabel("Time (s)")
-plt.legend()
-plt.grid(True)
+        for i, func in enumerate(graphs):
+            func(
+                axis[i],
+                theta=angles,
+                theta_dot=angular_velocities,
+                timestep=timestep,
+                time=t_eval,
+                mass=mass,
+                gravity=gravity,
+                length=length,
+            )
 
+        plt.tight_layout()
+        plt.show()
 
-plt.tight_layout()
-plt.show()
+        if animate:
+            graphing.Animate(magnets,length,angles,timestep)
 
-fig_anim, ax_anim = plt.subplots(figsize=(8, 6))
-ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
-ax_anim.set_ylim(-length * 1.1, 0.01)
-ax_anim.set_aspect("equal")
-ax_anim.grid(True)
+    return angles, angular_velocities
 
-ax_anim.plot([magnets[0], magnets[-1]], [0, 0], "k--", lw=1)
-
-lines = []  # Strings
-rects = []  # Magnets
-rect_width = 0.003
-rect_height = 0.015
-
-for i in range(num_mags):
-    (line,) = ax_anim.plot([], [], "k-", lw=1, zorder=1)
-    lines.append(line)
-
-    # Magnet (rectangle)
-    rect = plt.Rectangle(
-        (0, 0),
-        rect_width,
-        rect_height,
-        facecolor="tab:blue",
-        edgecolor="black",
-        zorder=2,
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="[Magnetic Cradle Simulation IYPT 2026]"
     )
-    rects.append(rect)
-    ax_anim.add_patch(rect)
 
+    parser.add_argument(
+        "-a", "--animate", help="Show the animation", action="store_true"
+    )
+    parser.add_argument("-s", "--save", help="Save the animation", action="store_true")
+    parser.add_argument(
+        "-v", "--version", action="version", version="[Magnetic Cradle] v0.1a"
+    )
+    parser.add_argument("-d", "--debug", help="Enable errors", action="store_true")
 
-def init():
-    for line in lines:
-        line.set_data([], [])
-    for rect in rects:
-        rect.set_xy((0, 0))
-    return lines + rects
+    args = parser.parse_args()
+    save_anim = args.save
+    animate = args.animate
+    debug = args.debug
 
+    print(
+        "\n\033[Magnetic Cradle Numerical Solution\033[0m\n"
+    )
 
-def update(frame):
-    angles_deg = np.degrees(angles[:, frame])
-    for i in range(num_mags):
-        theta = np.radians(angles_deg[i])
-        x_pivot = magnets[i]
-        x_tip = x_pivot + length * np.sin(theta)
-        y_tip = -length * np.cos(theta)
+    while True:
+        print("\n\033[1mInput initial conditions (θ1,θ2, [...]) or [x] to exit:\033[0m")
 
-        lines[i].set_data([x_pivot, x_tip], [0, y_tip])
+        initial_angles = np.radians(np.array(input().split(), dtype="float"))
 
-        rect_x = (
-            x_tip - np.cos(theta) * rect_width / 2 + np.sin(theta) * rect_height / 2
-        )
-        rect_y = (
-            y_tip - np.cos(theta) * rect_height / 2 - np.sin(theta) * rect_width / 2
-        )
+        print("\n\033[1mInput simulation length (default 8)\033[0m")
+        inp = input()
+        if inp:
+            t_eval = np.linspace(0, int(inp), int(int(inp) / timestep))
+        else:
+            t_eval = np.linspace(0, 8, int(8 / timestep))
 
-        rects[i].remove()
-        rect = plt.Rectangle(
-            (rect_x, rect_y),
-            rect_width,
-            rect_height,
-            angle=np.degrees(theta),
-            facecolor="grey",
-            edgecolor="black",
-            zorder=2,
-        )
-        rects[i] = rect
-        ax_anim.add_patch(rect)
-
-    return lines + rects
-
-
-ani = animation.FuncAnimation(
-    fig_anim,
-    update,
-    frames=len(sol.t),
-    init_func=init,
-    blit=False,
-    interval=1000 / 60,
-)
-
-# Uncomment below to save as video (requires ffmpeg)
-# ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
-
-plt.show()
+        if debug:
+            solve(np.concatenate([initial_angles, initial_angular_velocities]),t_eval)
+        else:
+            try:
+                solve(np.concatenate([initial_angles, initial_angular_velocities]),t_eval)
+            except (ValueError, IndexError):
+                print("Exiting.")
+                break

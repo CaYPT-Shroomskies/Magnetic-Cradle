@@ -1,1 +1,0 @@
-/home/chrysanthemum/Code/Cylindrical-Magnet-Field/lorentz.py
