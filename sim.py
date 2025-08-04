@@ -1,8 +1,26 @@
-
 print("\n\033[1mMagnetic Cradle Numerical Solution\033[0m")
+import argparse  # noqa
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="[Magnetic Cradle Simulation IYPT 2026]\nWritten by Luyu, see the MIT license before using. hehe ^-^"
+    )
+
+    parser.add_argument(
+        "-a", "--animate", help="Show the animation", action="store_true"
+    )
+    parser.add_argument("-s", "--save", help="Save the animation", action="store_true")
+    parser.add_argument(
+        "-v", "--version", action="version", version="[Magnetic Cradle] v0.1a"
+    )
+    parser.add_argument("-d", "--debug", help="Enable errors", action="store_true")
+
+    args = parser.parse_args()
+    save_anim = args.save
+    animate = args.animate
+    debug = args.debug
 
 # Fundamental
-import argparse  # noqa
 import os  # noqa
 import time  # noqa
 
@@ -138,7 +156,6 @@ def compile():
     print("Precompiled Step Function:", int(1e3 * (time.perf_counter() - t0)), "ms\n")
 
 
-compile()
 
 
 # Solve
@@ -177,27 +194,7 @@ def solve(conditions,t_eval):
     return angles, angular_velocities
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="[Magnetic Cradle Simulation IYPT 2026]"
-    )
-
-    parser.add_argument(
-        "-a", "--animate", help="Show the animation", action="store_true"
-    )
-    parser.add_argument("-s", "--save", help="Save the animation", action="store_true")
-    parser.add_argument(
-        "-v", "--version", action="version", version="[Magnetic Cradle] v0.1a"
-    )
-    parser.add_argument("-d", "--debug", help="Enable errors", action="store_true")
-
-    args = parser.parse_args()
-    save_anim = args.save
-    animate = args.animate
-    debug = args.debug
-
-    print(
-        "\n\033[Magnetic Cradle Numerical Solution\033[0m\n"
-    )
+    compile()
 
     while True:
         print("\n\033[1mInput initial conditions (θ1,θ2, [...]) or [x] to exit:\033[0m")
