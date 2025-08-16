@@ -49,6 +49,7 @@ def FFT(ax, **kwargs):
 
 
 def Animate(magnets,length,angles,timestep):
+    print("\n\nANIMATING...")
     fig_anim, ax_anim = plt.subplots(figsize=(8, 6))
     ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
     ax_anim.set_ylim(-length * 1.1, 0.01)
@@ -62,7 +63,7 @@ def Animate(magnets,length,angles,timestep):
     rect_width = 0.003
     rect_height = 0.015
 
-    for i in range(num_mags):
+    for i in range(len(magnets)):
         (line,) = ax_anim.plot([], [], "k-", lw=1, zorder=1)
         lines.append(line)
 
@@ -89,7 +90,7 @@ def Animate(magnets,length,angles,timestep):
 
     def update(frame):
         angles_deg = np.degrees(angles[:, frame])
-        for i in range(num_mags):
+        for i in range(len(magnets)):
             theta = np.radians(angles_deg[i])
             x_pivot = magnets[i]
             x_tip = x_pivot + length * np.sin(theta)
@@ -123,7 +124,7 @@ def Animate(magnets,length,angles,timestep):
     ani = animation.FuncAnimation(
         fig_anim,
         update,
-        frames=len(angles),
+        frames=len(angles[0]),
         init_func=init,
         interval=1000 * timestep,
     )

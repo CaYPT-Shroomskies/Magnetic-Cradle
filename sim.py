@@ -42,8 +42,8 @@ gravity = 9.81  # m/s^2
 # Magnet Variables
 num_mags = 2
 magnets = np.linspace(-0.03, 0.03, num_mags)
-length = 0.1
-m = 0.1
+length = 0.3
+m = 0.001
 m_rad = 0.006
 m_seg = 12
 mass = 0.02
