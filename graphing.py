@@ -51,7 +51,7 @@ def FFT(ax, **kwargs):
     # ax.legend()
 
 
-def Animate(magnets,length,angles,timestep):
+def Animate(magnets,length,angles,timestep, save):
     print("\n\nANIMATING...")
     fig_anim, ax_anim = plt.subplots(figsize=(8, 6))
     ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
@@ -132,7 +132,8 @@ def Animate(magnets,length,angles,timestep):
         interval=1000 * timestep,
     )
 
-    # Uncomment below to save as video (requires ffmpeg)
-    # ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
+    if save:
+        print("\n[Saving...]\n")
+        ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
 
     plt.show()
