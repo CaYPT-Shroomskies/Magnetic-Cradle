@@ -42,19 +42,19 @@ gravity = 9.81  # m/s^2
 # Magnet Variables
 num_mags = 2
 magnets = np.linspace(-0.03, 0.03, num_mags)
-length = 0.3
-m = 0.001
-m_rad = 0.006
+length = 0.2
+m = 0.2
+m_rad = 0.04
 m_seg = 12
-mass = 0.02
+mass = 0.04
 
-drag = 0.00005  # Drag coefficient
+drag = 0.0005  # Drag coefficient (simple viscous)
 
 # Initial state
 initial_angular_velocities = np.zeros(num_mags)
 timestep = 1 / 60
 
-graphs = [graphing.Theta, graphing.FFT]
+graphs = [graphing.Theta, graphing.Energy]
 animate = True
 
 

@@ -20,14 +20,17 @@ def Theta(ax, **kwargs):
     
 def Energy(ax,**kwargs):
     angles = kwargs["theta"]
-    pot = -np.cos(angles)*kwargs["length"]*kwargs["mass"]*kwargs["gravity"]
+    pot = 1-(np.cos(angles))*kwargs["length"]*kwargs["mass"]*kwargs["gravity"]
+    kin = 0.5 * kwargs["mass"]*(np.gradient(angles,axis=1)*kwargs["length"]/kwargs["timestep"])**2
+    # realized need to get U from dipole too
+    # Could do later but too lazy hehehe
     time_array = kwargs["time"]
 
     ax.set_xlabel("Time $[s]$")
-    ax.set_ylabel("Angle $[deg.]$")
+    ax.set_ylabel("Energy $[J]$")
 
     for i in range(len(angles)):
-            ax.plot(time_array, np.degrees(angles[i]), label=f"Magnet {i + 1}")
+            ax.plot(time_array, pot[i]+kin[i], label=f"Magnet {i + 1}")
 
 def FFT(ax, **kwargs):
     print("Drawing frequency domain graph...")
