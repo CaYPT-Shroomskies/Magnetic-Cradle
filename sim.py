@@ -40,19 +40,19 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 2
-magnets = np.linspace(-0.03, 0.03, num_mags)
-length = 0.2
-m = 0.8
-m_rad = 0.04
+num_mags = 3
+magnets = np.linspace(-0.04, 0.04, num_mags)
+length = 0.05
+m = 0.4
+m_rad = 0.05
 m_seg = 12
 mass = 0.04
 
-drag = 0.0002  # Drag coefficient (simple viscous)
+drag = 0.0000  # Drag coefficient (simple viscous)
 
 # Initial state
 initial_angular_velocities = np.zeros(num_mags)
-timestep = 1 / 60
+timestep = 1 / 30
 
 graphs = [graphing.Theta, graphing.Energy]
 animate = True
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     compile()
 
     while True:
-        print("\n\033[1mInput initial conditions (θ1,θ2, [...]) or [x] to exit:\033[0m")
+        print("\n\033[1mInput initial conditions ("+"θ, "*num_mags+") or [x] to exit:\033[0m")
 
         initial_angles = np.radians(np.array(input().split(), dtype="float"))
 

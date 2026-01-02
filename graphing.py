@@ -55,7 +55,7 @@ def Animate(magnets,length,angles,timestep, save):
     print("\n\nANIMATING...")
     fig_anim, ax_anim = plt.subplots(figsize=(8, 6))
     ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
-    ax_anim.set_ylim(-length * 1.1, 0.01)
+    ax_anim.set_ylim(-length * 1.2, 0.01)
     ax_anim.set_aspect("equal")
     ax_anim.grid(True)
 
@@ -134,6 +134,6 @@ def Animate(magnets,length,angles,timestep, save):
 
     if save:
         print("\n[Saving...]\n")
-        ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=30)
+        ani.save("magnetic_cradle.mp4", writer="ffmpeg", fps=60)
 
     plt.show()
