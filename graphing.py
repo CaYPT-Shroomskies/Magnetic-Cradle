@@ -16,7 +16,8 @@ def Theta(ax, **kwargs):
     ax.set_ylabel("Angle $[deg.]$")
 
     for i in range(len(angles)):
-            ax.plot(time_array, np.degrees(angles[i]), label=f"Magnet {i + 1}")
+        print("plotting 1")
+        ax.plot(time_array, np.degrees(angles[i]), label=f"Magnet {i + 1}",alpha=0.5)
     
 def Energy(ax,**kwargs):
     angles = kwargs["theta"]
@@ -41,7 +42,7 @@ def FFT(ax, **kwargs):
 
         fft_result = np.fft.fft(data)
         freq = np.fft.fftfreq(n, d=timestep)
-        ax.plot(freq, np.abs(fft_result))
+        ax.plot(freq, np.abs(fft_result),label="Series")
 
     ax.set_xlabel("Frequency $[Hz]$")
     ax.set_ylabel("Amplitude $[arb.]$")
@@ -57,10 +58,9 @@ def Animate(magnets,length,angles,timestep, save):
     ax_anim.set_xlim(min(magnets) - length / 2, max(magnets) + length / 2)
     ax_anim.set_ylim(-length * 1.2, 0.01)
     ax_anim.set_aspect("equal")
-    ax_anim.grid(True)
 
     ax_anim.plot([magnets[0], magnets[-1]], [0, 0], "k--", lw=1)
-
+    ax_anim.set_axis_off()
     lines = []  # Strings
     rects = []  # Magnets
     rect_width = 0.003

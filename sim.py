@@ -40,21 +40,21 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 3
+num_mags = 4
 magnets = np.linspace(-0.04, 0.04, num_mags)
 length = 0.05
-m = 0.4
+m = 0.4935
 m_rad = 0.05
 m_seg = 12
 mass = 0.04
 
-drag = 0.0000  # Drag coefficient (simple viscous)
+drag = 0.00000  # Drag coefficient (simple viscous)
 
 # Initial state
 initial_angular_velocities = np.zeros(num_mags)
-timestep = 1 / 30
+timestep = 1 / 60
 
-graphs = [graphing.Theta, graphing.Energy]
+graphs = [graphing.Theta, graphing.FFT]
 animate = True
 
 
@@ -111,7 +111,9 @@ def step(t: float, state: np.ndarray) -> np.ndarray:
 
         acc = np.cross(rel_pos, force)[1] / (mass * length**2)
 
-        ang_accel[ind - 1] -= acc  # Conservation of angular momentum
+        rel_pos_l = np.array([np.sin(theta_a)*length,0,np.cos(theta_a)*length])
+        ang_accel[ind - 1] += np.cross(rel_pos_l, -force)[1] / (mass * length**2)
+         # force conserved
         ang_accel[ind] += acc
 
     for i in range(num_mags):
