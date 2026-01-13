@@ -40,15 +40,15 @@ import matplotlib.pyplot as plt
 gravity = 9.81  # m/s^2
 
 # Magnet Variables
-num_mags = 4
-magnets = np.linspace(-0.04, 0.04, num_mags)
-length = 0.05
-m = 0.4935
+num_mags = 2
+magnets = np.linspace(-0.025, 0.025, num_mags)
+length = 0.09
+m = 0.987
 m_rad = 0.05
 m_seg = 12
-mass = 0.04
+mass = 0.02
 
-drag = 0.00000  # Drag coefficient (simple viscous)
+drag = 0.00004  # Drag coefficient (simple viscous)
 
 # Initial state
 initial_angular_velocities = np.zeros(num_mags)

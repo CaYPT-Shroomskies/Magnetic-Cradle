@@ -11,13 +11,15 @@ animate = False
 save_anim = False
 
 data = pd.read_csv(sys.argv[1])
-data = np.stack([data["Time"], data["t1"], data["t2"],data["t3"]], axis=0)
+data = np.stack([data["Time"], data["t1"], data["t2"]], axis=0)
+#data = np.stack([data["Time"], data["t1"], data["t2"], data["t3"]], axis=0) # if analyzing 3 mag
+
 # Interpolating
-if True:
+if False:
     # Filtering
     data[1] = savgol_filter(data[1], 11, 3)
     data[2] = savgol_filter(data[2], 11, 3)
-    data[3] = savgol_filter(data[3], 11, 3)
+    #data[3] = savgol_filter(data[3], 11, 3) # 
 
 data[1:] = np.radians(data[1:])
 graphs = [graphing.Theta ,graphing.FFT]
